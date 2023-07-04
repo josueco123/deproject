@@ -12,14 +12,14 @@
 
 // Apply chart themes
 am4core.useTheme(am4themes_animated);
-am4core.useTheme(am4themes_kelly);
+
 // Create root and chart
 var chart = am4core.create("chartdiv", am4charts.XYChart3D);
 
 // Add data
 chart.data = [{
   "country": "Lithuania",
-  "litres": 501.9,
+  "litres": 401.9,
   "units": 250
 }, {
   "country": "Czech Republic",

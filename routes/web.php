@@ -24,3 +24,7 @@ Route::get('/uploadthird', 'ReportsController@loadUploadThirdsView')
 ->middleware(['auth', 'verified'])->name('loadUploadThirds');
 Route::post('/uploadthird', 'ReportsController@getDataToImportML')
 ->middleware(['auth', 'verified'])->name('sendUploadThirds');
+Route::get('/uploadbilling', 'ReportsController@loadUploadBillingView')
+->middleware(['auth', 'verified'])->name('loadUploadBilling');
+Route::post('/uploadbilling', 'ReportsController@getDataToImportBillML')
+->middleware(['auth', 'verified'])->name('sendUploadBilling');

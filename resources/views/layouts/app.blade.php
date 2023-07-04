@@ -58,6 +58,9 @@
                                     <a class="dropdown-item" href="{{ route('loadUploadThirds') }}">
                                         Archivo Terceros
                                     </a>
+                                    <a class="dropdown-item" href="{{ route('loadUploadBilling') }}">
+                                        Archivo Facturacion
+                                    </a>
 
                                     
                             </li>

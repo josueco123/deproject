@@ -4,7 +4,7 @@ namespace App\Imports;
 
 use Maatwebsite\Excel\Concerns\{ToArray,WithStartRow,WithValidation};
 
-class MercadoLibreImport implements ToArray,WithStartRow,WithValidation
+class MercadoLibreBillingImport implements ToArray,WithStartRow,WithValidation
 {
     private $data;
 
@@ -21,8 +21,8 @@ class MercadoLibreImport implements ToArray,WithStartRow,WithValidation
     public function array(array $rows)
     {
         foreach ($rows as $row) {
-            $this->data[] = array('name' => $row[25], 'identification' => $row[26],
-             'address' => $row[27], 'city' => $row[28], 'estate' => $row[29]);
+            $this->data[] = array('unities' => $row[5], 'total' => $row[18] ,'sku' => $row[13],
+             'title' => $row[16] ,'identification' => $row[26]);
         }
     }
 
@@ -33,11 +33,11 @@ class MercadoLibreImport implements ToArray,WithStartRow,WithValidation
 
     public function rules(): array{
         return [
-          '25' => 'required',
-          '26' => 'required',
-          '27' => 'required',
-          '28' => 'required',
-          '29' => 'required'
+          '5' => 'required',
+          '13' => 'required',
+          '18' => 'required',
+          '16' => 'required',
+          '26' => 'required'
         ];
       }
 }
