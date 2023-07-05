@@ -14,7 +14,7 @@
 am4core.useTheme(am4themes_animated);
 
 // Create root and chart
-var chart = am4core.create("chartdiv", am4charts.XYChart3D);
+const chart = am4core.create("chartdiv", am4charts.XYChart3D);
 
 // Add data
 chart.data = [{

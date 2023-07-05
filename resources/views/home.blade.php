@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-10">
+        <div class="col-md-12">
             <div class="card">
                 <div class="card-header">{{ __('Dashboard') }}</div>
 
@@ -13,8 +13,24 @@
                             {{ session('status') }}
                         </div>
                     @endif
-
-                    <div id="chartdiv" style="width: 800px; height: 400px;"></div>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div id="chartdiv" style="width: 500px; height: 400px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div id="chartdiv2" style="width: 600px; height: 400px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                   
+                    
                 </div>
             </div>
         </div>

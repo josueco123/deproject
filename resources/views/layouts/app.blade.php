@@ -105,5 +105,6 @@ $(".custom-file-input").on("change", function() {
 <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/themes/kelly.js"></script>
 <script src="{{ asset('js/xychart.js') }}" defer></script>
+<script src="{{ asset('js/piechart.js') }}" defer></script>
 </body>
 </html>
