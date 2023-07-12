@@ -80,7 +80,7 @@ class ReportsController extends Controller
     {
         $arrayMl = [];
         $headers = [
-        "Identificacion", 
+        "Identificación", 
         "Dígito de verificación", 
         "Código Sucursal", 
         "Tipo identificación", 
@@ -89,7 +89,7 @@ class ReportsController extends Controller
         "Apellidos del tercero", 
         "Nombre Comercial",
         "Dirección",
-        "Código pais", 
+        "Código país", 
         "Código departamento/estado", 
         "Código ciudad",
         "Indicativo teléfono principal",
@@ -117,112 +117,130 @@ class ReportsController extends Controller
         $arrayEmp = [];
         $arrayPers = [];
         foreach ($data as $third){
-            $company = $this->isCompany($third['name']);
-            
-            if($company){
-                array_push($arrayTemp, $third['identification']);
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "31");
-                array_push($arrayTemp, "Es empresa");
-                array_push($arrayTemp, $third['name']);
-                array_push($arrayTemp, "" );
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                $arrayAddress = explode("/",$third['address']);
-                array_push($arrayTemp, $arrayAddress[0] );
-                array_push($arrayTemp, "CO");
-                $department_id = Departments::getDepartmentCode($third['estate']);
-                array_push($arrayTemp, $department_id);
-                if($department_id == 11){
-                    array_push($arrayTemp, 11001);
 
-                }else {
-                    $city = Cities::getCity($third['city'],$department_id);
-                    if(empty($city)){
-                        array_push($arrayTemp, $department_id.'001');
-                    }else{
-                        array_push($arrayTemp, $city->codigo);
+            if ($third['name'] != " ")
+            {
+                $company = $this->isCompany($third['name']);
+
+                if($company){
+                    if(!$this->idInData($arrayEmp, $third['identification']))
+                    {
+                        array_push($arrayTemp, $third['identification']);
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "31");
+                        array_push($arrayTemp, "Empresa");
+                        array_push($arrayTemp, strtoupper($third['name']));
+                        array_push($arrayTemp, "" );
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        $arrayAddress = explode("/",$third['address']);
+                        array_push($arrayTemp, $arrayAddress[0] );
+                        array_push($arrayTemp, "Co");
+                        $department_id = Departments::getDepartmentCode($third['estate']);
+                        array_push($arrayTemp, strval($department_id));
+                        if($department_id == "11"){
+                            array_push($arrayTemp, 11001);
+        
+                        }else {
+                            $city = Cities::getCity($third['city'],$department_id);
+                            if(empty($city)){
+                                array_push($arrayTemp, $department_id.'001');
+                            }else{
+                                if($department_id == "05" || $department_id == "08"){
+                                    array_push($arrayTemp, '0'.$city->codigo);
+                                }else {
+                                    array_push($arrayTemp, strval($city->codigo));
+                                }
+                                
+                            }
+                            
+                        }
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "2 - Responsable de IVA");
+                        array_push($arrayTemp, "R-99-PN");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "6023798287");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "NOAPLICAFAC@GMAIL.COM");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "NO");
+                        array_push($arrayTemp, "Activo");
+
+                        array_push($arrayEmp, $arrayTemp);
                     }
                     
-                }
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "2 - Responsable de IVA");
-                array_push($arrayTemp, "R-99-PN");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "6023798287");
-                array_push($arrayTemp, "NOAPLICAFAC@GMAIL.COM");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "NO");
-                array_push($arrayTemp, "Activo");
-                
-                if(!in_array($arrayTemp, $arrayEmp)){
-                    array_push($arrayEmp, $arrayTemp);
-                }
-                
-                $arrayTemp = [];
+                    $arrayTemp = [];
+    
+                }else{
 
-            }else{
-                array_push($arrayTemp, $third['identification']);
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "13");
-                array_push($arrayTemp, "Es persona");
-                array_push($arrayTemp, "");
-                $arrayName = $this->separteName($third['name']);
-                array_push($arrayTemp, $arrayName[0] );
-                array_push($arrayTemp, $arrayName[1]);
-                array_push($arrayTemp, "");
-                $arrayAddress = explode("/",$third['address']);
-                array_push($arrayTemp, $arrayAddress[0] );
-                array_push($arrayTemp, "CO");
-                $department_id = Departments::getDepartmentCode($third['estate']);
-                array_push($arrayTemp, $department_id);
-                if($department_id == 11){
-                    array_push($arrayTemp, 11001);
+                    if(!$this->idInData($arrayPers, $third['identification'])){
 
-                }else {
-                    $city = Cities::getCity($third['city'],$department_id);
-                    if(empty($city)){
-                        array_push($arrayTemp, $department_id.'001');
-                    }else{
-                        array_push($arrayTemp, $city->codigo);
+                        array_push($arrayTemp, $third['identification']);
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "13");
+                        array_push($arrayTemp, "Es persona");
+                        array_push($arrayTemp, "");
+                        $arrayName = $this->separteName($third['name']);
+                        array_push($arrayTemp, strtoupper($arrayName[0]));
+                        array_push($arrayTemp, strtoupper($arrayName[1]));
+                        array_push($arrayTemp, "");
+                        $arrayAddress = explode("/",$third['address']);
+                        array_push($arrayTemp, $arrayAddress[0] );
+                        array_push($arrayTemp, "Co");
+                        $department_id = Departments::getDepartmentCode($third['estate']);
+                        array_push($arrayTemp, strval($department_id));
+                        if($department_id == "11"){
+                            array_push($arrayTemp, 11001);
+        
+                        }else {
+                            $city = Cities::getCity($third['city'],$department_id);
+                            if(empty($city)){
+                                array_push($arrayTemp, $department_id.'001');
+                            }else{
+                                if($department_id == "05" || $department_id == "08"){
+                                    array_push($arrayTemp, '0'.$city->codigo);
+                                }else {
+                                    array_push($arrayTemp, strval($city->codigo));
+                                }
+                            }
+                            
+                        }
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "0 - No responsable de IVA");
+                        array_push($arrayTemp, "R-99-PN");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "6023798287");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "NOAPLICAFAC@GMAIL.COM");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "NO");
+                        array_push($arrayTemp, "Activo");
+
+                        array_push($arrayPers, $arrayTemp);
                     }
                     
+                    $arrayTemp = [];
+    
                 }
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "0 - No responsable de IVA");
-                array_push($arrayTemp, "R-99-PN");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "6023798287");
-                array_push($arrayTemp, "NOAPLICAFAC@GMAIL.COM");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "");
-                array_push($arrayTemp, "NO");
-                array_push($arrayTemp, "Activo");
-                
-                if(!in_array($arrayTemp, $arrayPers)){
-                    array_push($arrayPers, $arrayTemp);
-                }
-                
-                $arrayTemp = [];
-
-                }
+            }
             
         }
         $arrayResult = array_merge($arrayMl,$arrayPers,$arrayEmp);
@@ -232,6 +250,10 @@ class ReportsController extends Controller
     public function isCompany($name){
         $pattern = "/\b(SAS|LTDA|GRUPO|INVERSIONES|EDIFICIO|SISTEMAS|CLINICA|SERVICIOS|.COM|EQUIPOS|S.A.S.|L.T.D.A.|GROUP|EQUIPO|\d+)/i";
         $result = preg_match($pattern,$name) == 1 ? true : false;
+
+        if(str_word_count($name) == 1){
+            $result = true;
+        }
         return $result;
         
     }
@@ -322,6 +344,18 @@ class ReportsController extends Controller
         $number = intval($value);
         $result = $number - ($number * 0.19);
         return $result;
+    }
+
+    public function idInData($array,$identification)
+    {
+        $inArray = false;
+        foreach ($array as $data) {
+            if ($data['0'] == $identification) {
+                $inArray = true;
+            }
+        }
+
+        return $inArray;
     }
 
 }

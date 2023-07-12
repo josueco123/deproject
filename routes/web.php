@@ -28,3 +28,15 @@ Route::get('/uploadbilling', 'ReportsController@loadUploadBillingView')
 ->middleware(['auth', 'verified'])->name('loadUploadBilling');
 Route::post('/uploadbilling', 'ReportsController@getDataToImportBillML')
 ->middleware(['auth', 'verified'])->name('sendUploadBilling');
+Route::get('/accessdmml', 'MercadoLibreController@handleMercadoLibreCallback')
+->middleware(['auth', 'verified'])->name('accessdmml');
+Route::get('/mercadolibreapi', 'MercadoLibreController@loadMLView')
+->middleware(['auth', 'verified'])->name('mercadolibreapi');
+
+Route::get('/clear-cache', function () {
+    echo Artisan::call('config:clear');
+    echo Artisan::call('config:cache');
+    echo Artisan::call('cache:clear');
+    echo Artisan::call('route:clear');
+ });
+ 
