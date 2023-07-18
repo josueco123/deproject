@@ -15,7 +15,7 @@
                 <div class="card-header">Generar Archivo Reporte desde Mercado Libre</div>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('sendUploadBilling') }}">
+                    <form method="POST" action="{{ route('mercadolibreorders') }}">
                         @csrf  
                         <div class="form-group row">   
                             <label for="start_date" class="col-sm-4 col-form-label">Selecciona la fecha de inicio</label>

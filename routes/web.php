@@ -32,6 +32,12 @@ Route::get('/accessdmml', 'MercadoLibreController@handleMercadoLibreCallback')
 ->middleware(['auth', 'verified'])->name('accessdmml');
 Route::get('/mercadolibreapi', 'MercadoLibreController@loadMLView')
 ->middleware(['auth', 'verified'])->name('mercadolibreapi');
+Route::get('/mercadolibreconfig', 'MercadoLibreController@loadMLLoginView')
+->middleware(['auth', 'verified'])->name('mercadolibreconfig');
+Route::get('/mercadolibreredirect', 'MercadoLibreController@redirectToMercadoLibre')
+->middleware(['auth', 'verified'])->name('mercadolibreredirect');
+Route::post('/mercadolibreorders', 'MercadoLibreController@getOrdersByDate')
+->middleware(['auth', 'verified'])->name('mercadolibreorders');
 
 Route::get('/clear-cache', function () {
     echo Artisan::call('config:clear');
