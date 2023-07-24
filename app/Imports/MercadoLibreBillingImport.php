@@ -21,8 +21,8 @@ class MercadoLibreBillingImport implements ToArray,WithStartRow,WithValidation
     public function array(array $rows)
     {
         foreach ($rows as $row) {
-            $this->data[] = array('unities' => $row[5], 'total' => $row[18] ,'sku' => $row[13],
-             'title' => $row[16] ,'identification' => $row[26]);
+            $this->data[] = array('unities' => $row[5],'unit_price' => $row[18], 'total' => $row[11] ,
+            'sku' => $row[13], 'title' => $row[16] ,'identification' => $row[26]);
         }
     }
 

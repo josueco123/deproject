@@ -4,6 +4,11 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
+        @if (session('status'))
+                <div class="alert alert-warning">
+                    {{ session('status') }}
+                </div>
+            @endif
             @if ($errors->any())
             <div class="alert alert-danger" role="alert">
                 @foreach ($errors->all() as $error)

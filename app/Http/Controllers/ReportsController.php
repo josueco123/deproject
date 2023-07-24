@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 
 use App\Models\Cities;
+use App\Models\Products;
 use App\Models\Departments;
 use Illuminate\Http\Request;
 use App\Exports\FileFilterExport;
@@ -260,6 +261,7 @@ class ReportsController extends Controller
 
     public function filerDataFact($data)
     {
+        
         $arrayMl = [];
         $headers = [
         "Tipo de comprobante", 
@@ -298,6 +300,7 @@ class ReportsController extends Controller
 
         $arrayTemp = [];
         foreach ($data as $bill){
+            $cantidad = 0;
             array_push($arrayTemp, "1");
             array_push($arrayTemp, "");
             array_push($arrayTemp, $bill['identification']);
@@ -311,12 +314,31 @@ class ReportsController extends Controller
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
-            array_push($arrayTemp, "");
+            
+            if(str_contains($bill['sku'],'SILLAEAMES')){
+
+                $code = Products::getCodeProduct('SILLAEAMES');
+                $arraySilla = explode("X",$bill['sku']);
+                $cantidad = intval($arraySilla[1]);
+                array_push($arrayTemp, $code);
+
+            }else{
+                $code = Products::getCodeProduct($bill['sku']);
+                if($code == false){
+                    array_push($arrayTemp, 'No encontrado');
+                }else{
+                    array_push($arrayTemp, $code);
+                }
+               
+            }
+
+            
             array_push($arrayTemp, $bill['title']. " ".$bill['sku']);
             array_push($arrayTemp, "901284706");
             array_push($arrayTemp, "02");
-            array_push($arrayTemp, $bill['unities']);
-            array_push($arrayTemp, $this->getUnitValue($bill['total']));
+            $unities = $cantidad > 0 ? $cantidad : $bill['unities'];
+            array_push($arrayTemp, $unities);
+            array_push($arrayTemp, $bill['unit_price']);
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
@@ -326,8 +348,8 @@ class ReportsController extends Controller
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
             array_push($arrayTemp, "10");
-            $total = intval($bill['unities']) * intval($bill['total']);
-            array_push($arrayTemp,  $total);
+            //$total = intval($bill['unities']) * intval($bill['total']);
+            array_push($arrayTemp,  $bill['total']);
             $d=strtotime("+30 Days");
             array_push($arrayTemp,date("d/m/Y", $d));
             array_push($arrayTemp, "");

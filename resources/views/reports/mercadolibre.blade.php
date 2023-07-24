@@ -4,6 +4,14 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            <div class="alert alert-primary hidden mlAlert" role="alert">
+                Espera mientras genera y descarga el archivo
+            </div>
+            @if (session('status'))
+                <div class="alert alert-warning">
+                    {{ session('status') }}
+                </div>
+            @endif
             @if ($errors->any())
             <div class="alert alert-danger" role="alert">
                 @foreach ($errors->all() as $error)
@@ -27,6 +35,9 @@
                             <label for="end_date" class="col-sm-4 col-form-label">Selecciona la fecha de corte</label>
                             <div class="col-sm-6">
                                 <input type="datetime-local" id="end_date" name="end_date" class="form-control">
+                                <small id="endDateHelpBlock" class="form-text text-muted">
+                                    Mercado Libre solo trabaja con la hora, no hay necesidad de que llenes los minuntos
+                                </small>
                             </div> 
                         </div>
                         <div class="form-group row">  
@@ -42,7 +53,7 @@
                         </div>
                         <div class="form-group mb-2">
                             <div class="col-sm-10">
-                                <button type="submit" class="btn btn-primary">Enviar</button>
+                                <button type="submit" class="btn btn-primary mlBtn">Enviar</button>
                             </div>
                         </div>
                     </form>
