@@ -115,9 +115,6 @@
     <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap4.min.js"></script>
 
-    
-    
-
     <script>
 // Add the following code if you want the name of the file appear on select
 $(".custom-file-input").on("change", function() {
@@ -144,6 +141,10 @@ $(".mlBtn").on("click", function(){
                     { data: 'code' }, 
                     { data: 'name' }, 
                     { data: 'reference' },
+                    { "defaultContent": true,render: function ( data, type, row ) {
+                        return "<a class='btn btn-primary' role='button' href='{{ url('editproduct/') }}/"+ row["id"] + "'> Editar </a>";;
+             
+                    } }
                 ]
             });
         });

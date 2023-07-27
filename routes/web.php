@@ -41,6 +41,14 @@ Route::post('/mercadolibreorders', 'MercadoLibreController@getOrdersByDate')
 Route::get('/showproducts', 'ProductsController@index')
 ->middleware(['auth', 'verified'])->name('showproducts');
 Route::get('/listproducts', 'ProductsController@getProducts');
+Route::get('/formproduct', 'ProductsController@create')
+->middleware(['auth', 'verified'])->name('formproduct');
+Route::post('/saveproduct', 'ProductsController@store')
+->middleware(['auth', 'verified'])->name('saveproduct');
+Route::get('/editproduct/{id}', 'ProductsController@edit')
+->middleware(['auth', 'verified'])->name('editproduct');
+Route::post('/updateproduct/{id}', 'ProductsController@update')
+->middleware(['auth', 'verified'])->name('updateproduct');
 
 Route::get('/clear-cache', function () {
     echo Artisan::call('config:clear');

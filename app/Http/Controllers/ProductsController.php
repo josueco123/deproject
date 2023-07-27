@@ -21,8 +21,8 @@ class ProductsController extends Controller
 
     public function getProducts()
     {
-        $datos = Products::all();
-        return response()->json($datos);
+        $Products = Products::all();
+        return response()->json($Products);
     }
 
     /**
@@ -33,6 +33,7 @@ class ProductsController extends Controller
     public function create()
     {
         //
+        return view ('products.formproduct');
     }
 
     /**
@@ -44,6 +45,21 @@ class ProductsController extends Controller
     public function store(Request $request)
     {
         //
+        $request->validate([
+            'code' => 'required|unique:productos,code',
+            'reference' => 'required',
+            'nameproduct' => 'required'
+          ]);
+
+        $Product = new Products;
+         
+        $Product->code = $request->code;
+        $Product->reference = strtoupper(str_replace(' ', '',$request->reference));
+        $Product->name = strtoupper($request->nameproduct);
+ 
+        $Product->save();
+
+        return redirect('showproducts')->with('status', 'Producto Agregado correctamente!');
     }
 
     /**
@@ -63,9 +79,11 @@ class ProductsController extends Controller
      * @param  \App\Products  $products
      * @return \Illuminate\Http\Response
      */
-    public function edit(Products $products)
+    public function edit($id)
     {
         //
+        $product = Products::find($id);
+        return view ('products.formproduct',compact('product'));
     }
 
     /**
@@ -75,9 +93,24 @@ class ProductsController extends Controller
      * @param  \App\Products  $products
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Products $products)
+    public function update(Request $request, $id)
     {
         //
+        $request->validate([
+            'code' => 'required|unique:productos,code',
+            'reference' => 'required',
+            'nameproduct' => 'required'
+          ]);
+
+        $Product = Products::find($id);
+         
+        $Product->code = $request->code;
+        $Product->reference = strtoupper(str_replace(' ', '',$request->reference));
+        $Product->name = strtoupper($request->nameproduct);
+ 
+        $Product->save();
+
+        return redirect('showproducts')->with('status', 'Producto Editado correctamente!');
     }
 
     /**
