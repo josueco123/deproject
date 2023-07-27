@@ -36,4 +36,10 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/kelly.js"></script>
+<script src="{{ asset('js/xychart.js') }}" defer></script>
+<script src="{{ asset('js/piechart.js') }}" defer></script>
 @endsection

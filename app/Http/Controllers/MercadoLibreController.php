@@ -73,35 +73,50 @@ class MercadoLibreController extends Controller
         $start_date = $request->input('start_date').':00.000-00:00';
         $end_date = $request->input('end_date').':00.000-00:00';
 
-         $response = Http::withToken($request->session()->get('ml_token'))
-        ->get('https://api.mercadolibre.com/orders/search?seller=212962423&order.date_created.from='. $start_date .'&order.date_created.to='.$end_date);
+        $total = 0;
+        $offset = 0;
+
+        $response = Http::withToken($request->session()->get('ml_token'))
+        ->get('https://api.mercadolibre.com/orders/search?seller=212962423&order.date_created.from='. $start_date .'&order.date_created.to='.$end_date.'&order.status=paid&offset='.$offset);
 
         if($response->status() == 403 || $response->status() == 401){
            $token = $this->refreshToken();
-            $response = Http::withToken($token)
-            ->get('https://api.mercadolibre.com/orders/search?seller=212962423&order.date_created.from='. $start_date .'&order.date_created.to='.$end_date);
+            $response = Http::withToken($request->session()->get('ml_token'))
+            ->get('https://api.mercadolibre.com/orders/search?seller=212962423&order.date_created.from='. $start_date .'&order.date_created.to='.$end_date.'&order.status=paid&offset='.$offset);
         }
         
         if($response->status() == 200){
-            $data = $response->json()['results'];
-            
+            $total = $response->json()['paging']['total'];
             $arrayData = [];
-        
-            foreach($data as $result){
-                
-                $billing = $this->getBillingInfo($request,$result['id']);
-                $location = $this->getShipmentsData($request, $result['shipping']['id']);
-                $resultado = array_merge($billing, $location);
-                array_push($arrayData, $resultado);
-            }
 
-           
+            while($total > $offset){
+
+                $data = $response->json()['results'];
+            
+                
+                foreach($data as $result){
+                    
+                    $billing = $this->getBillingInfo($request,$result['id']);
+                    $location = $this->getShipmentsData($request, $result['shipping']['id']);
+                    $resultado = array_merge($billing, $location);
+                    array_push($arrayData, $resultado);
+                }
+                
+                $offset += 51;
+
+                $response = Http::withToken($request->session()->get('ml_token'))
+            ->get('https://api.mercadolibre.com/orders/search?seller=212962423&order.date_created.from='. $start_date .'&order.date_created.to='.$end_date.'&order.status=paid&offset='.$offset);
+                
+            }
+            
             $result = $this->transformDataThirds($arrayData);
             return Excel::download(new FileFilterExport($result), "Mercado Libre Terceros".date("Y-m-d H:i:s").'.xlsx');
 
         }else{
             return redirect('mercadolibreapi')->with('status', $response->json()['message']);
         }
+
+      
   
     }
 

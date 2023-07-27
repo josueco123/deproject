@@ -38,6 +38,9 @@ Route::get('/mercadolibreredirect', 'MercadoLibreController@redirectToMercadoLib
 ->middleware(['auth', 'verified'])->name('mercadolibreredirect');
 Route::post('/mercadolibreorders', 'MercadoLibreController@getOrdersByDate')
 ->middleware(['auth', 'verified'])->name('mercadolibreorders');
+Route::get('/showproducts', 'ProductsController@index')
+->middleware(['auth', 'verified'])->name('showproducts');
+Route::get('/listproducts', 'ProductsController@getProducts');
 
 Route::get('/clear-cache', function () {
     echo Artisan::call('config:clear');

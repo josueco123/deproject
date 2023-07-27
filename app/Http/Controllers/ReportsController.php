@@ -47,16 +47,17 @@ class ReportsController extends Controller
     public function getDataToImportBillML(Request $request)
     {
         $request->validate([
-            'file_input' => 'required'
+            'file_input' => 'required',
+            'codbodega' => 'required'
           ]);
-
+        $codbodega = $request->input('codbodega');
         $file = Storage::putFile('mr_import', $request->file('file_input'));
         $import = new MercadoLibreBillingImport();
         Excel::import($import, $file);
   
         $data = $import->getArray();
 
-        $result = $this->filerDataFact($data);
+        $result = $this->filerDataFact($data,$codbodega);
         return Excel::download(new FileFilterExport($result), "Mercado Libre Facturacion".date("Y-m-d H:i:s").'.xlsx');
     }
 
@@ -249,7 +250,7 @@ class ReportsController extends Controller
     }
 
     public function isCompany($name){
-        $pattern = "/\b(SAS|LTDA|GRUPO|INVERSIONES|EDIFICIO|SISTEMAS|CLINICA|SERVICIOS|.COM|EQUIPOS|S.A.S.|L.T.D.A.|GROUP|EQUIPO|\d+)/i";
+        $pattern = "/\b(SAS|LTDA|GRUPO|INVERSIONES|EDIFICIO|SISTEMAS|CLINICA|SERVICIOS|.COM|EQUIPOS|S.A.S.|L.T.D.A.|GROUP|EQUIPO|ESTUDIO|CONSTRUCTORA|COMUNICACIONES|DISTRIBUCIONES|INGENIERIA|CLUB|PARROQUIA|\d+)/i";
         $result = preg_match($pattern,$name) == 1 ? true : false;
 
         if(str_word_count($name) == 1){
@@ -259,7 +260,7 @@ class ReportsController extends Controller
         
     }
 
-    public function filerDataFact($data)
+    public function filerDataFact($data,$codbodega)
     {
         
         $arrayMl = [];
@@ -301,9 +302,11 @@ class ReportsController extends Controller
         $arrayTemp = [];
         foreach ($data as $bill){
             $cantidad = 0;
-            array_push($arrayTemp, "1");
+            $comprobante = $bill['total'] > 212000 ? 2 : 1;
+            array_push($arrayTemp, $comprobante);
             array_push($arrayTemp, "");
-            array_push($arrayTemp, $bill['identification']);
+            $companyId = $this->isCompany($bill['name']) ? '222222222' : $bill['identification'];
+            array_push($arrayTemp, $companyId);
             array_push($arrayTemp,"");
             array_push($arrayTemp,"");
             array_push($arrayTemp,date("d/m/Y"));
@@ -314,31 +317,41 @@ class ReportsController extends Controller
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
-            
-            if(str_contains($bill['sku'],'SILLAEAMES')){
 
-                $code = Products::getCodeProduct('SILLAEAMES');
-                $arraySilla = explode("X",$bill['sku']);
-                $cantidad = intval($arraySilla[1]);
-                array_push($arrayTemp, $code);
+            if(($bill['unities'] != '')){
 
-            }else{
-                $code = Products::getCodeProduct($bill['sku']);
-                if($code == false){
-                    array_push($arrayTemp, 'No encontrado');
-                }else{
+                if(str_contains($bill['sku'],'SILLAEAMES')){
+
+                    $code = Products::getCodeProduct('SILLAEAMES');
+                    $arraySilla = explode("X",$bill['sku']);
+                    $cantidad = intval($arraySilla[1]);
                     array_push($arrayTemp, $code);
+    
+                }else{
+                    $code = Products::getCodeProduct($bill['sku']);
+                    if($code == false){
+                        array_push($arrayTemp, 'No encontrado');
+                    }else{
+                        array_push($arrayTemp, $code);
+                    }
+                   
                 }
-               
-            }
 
+                array_push($arrayTemp, $bill['title']);
+            }else{
+                array_push($arrayTemp, "");
+                array_push($arrayTemp, "Factura Agrupada");
+            }
             
-            array_push($arrayTemp, $bill['title']. " ".$bill['sku']);
+            
+   
+           
             array_push($arrayTemp, "901284706");
-            array_push($arrayTemp, "02");
+            array_push($arrayTemp, $codbodega);
             $unities = $cantidad > 0 ? $cantidad : $bill['unities'];
             array_push($arrayTemp, $unities);
-            array_push($arrayTemp, $bill['unit_price']);
+            $priceUnity = $cantidad > 0 ? (intval($bill['unit_price'])/$cantidad) : $bill['unit_price'];
+            array_push($arrayTemp, $priceUnity);
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
@@ -347,12 +360,11 @@ class ReportsController extends Controller
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
-            array_push($arrayTemp, "10");
-            //$total = intval($bill['unities']) * intval($bill['total']);
+            array_push($arrayTemp, "05");
             array_push($arrayTemp,  $bill['total']);
             $d=strtotime("+30 Days");
             array_push($arrayTemp,date("d/m/Y", $d));
-            array_push($arrayTemp, "");
+            array_push($arrayTemp, $bill['code_orden']);
 
             array_push($arrayMl, $arrayTemp);
 
