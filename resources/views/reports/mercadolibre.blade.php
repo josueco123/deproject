@@ -43,11 +43,11 @@
                         <div class="form-group row">  
                             <label for="radio_grup" class="col-sm-4 col-form-label">Selecciona el tipo de reporte</label>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
+                                <input class="form-check-input" type="radio" name="reportoption" id="inlineRadio1" value="1">
                                 <label class="form-check-label" for="inlineRadio1">Reporte de Terceros</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
+                                <input class="form-check-input" type="radio" name="reportoption" id="inlineRadio2" value="2">
                                 <label class="form-check-label" for="inlineRadio2">Reporte de Facturación</label>
                             </div>
                         </div>

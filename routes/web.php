@@ -36,7 +36,7 @@ Route::get('/mercadolibreconfig', 'MercadoLibreController@loadMLLoginView')
 ->middleware(['auth', 'verified'])->name('mercadolibreconfig');
 Route::get('/mercadolibreredirect', 'MercadoLibreController@redirectToMercadoLibre')
 ->middleware(['auth', 'verified'])->name('mercadolibreredirect');
-Route::post('/mercadolibreorders', 'MercadoLibreController@getOrdersByDate')
+Route::post('/mercadolibreorders', 'MercadoLibreController@getSelectMethod')
 ->middleware(['auth', 'verified'])->name('mercadolibreorders');
 Route::get('/showproducts', 'ProductsController@index')
 ->middleware(['auth', 'verified'])->name('showproducts');

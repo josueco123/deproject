@@ -302,13 +302,14 @@ class ReportsController extends Controller
         $arrayTemp = [];
         foreach ($data as $bill){
             $cantidad = 0;
+            
+
             $comprobante = $bill['total'] > 212000 ? 2 : 1;
             array_push($arrayTemp, $comprobante);
             array_push($arrayTemp, "");
-            $companyId = $this->isCompany($bill['name']) ? '222222222' : $bill['identification'];
-            array_push($arrayTemp, $companyId);
+            array_push($arrayTemp,  $bill['identification']);
             array_push($arrayTemp,"");
-            array_push($arrayTemp,"");
+            array_push($arrayTemp,"5-1");
             array_push($arrayTemp,date("d/m/Y"));
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
@@ -322,22 +323,28 @@ class ReportsController extends Controller
 
                 if(str_contains($bill['sku'],'SILLAEAMES')){
 
-                    $code = Products::getCodeProduct('SILLAEAMES');
+                    $product = Products::getProduct('SILLAEAMES');
                     $arraySilla = explode("X",$bill['sku']);
                     $cantidad = intval($arraySilla[1]);
-                    array_push($arrayTemp, $code);
+                    array_push($arrayTemp, $product->code);
     
+                }elseif(str_contains($bill['sku'],'4005X')){
+                    $product = Products::getProduct('SILLA4005ENSAMBLADA');
+                    $arraySilla = explode("X",$bill['sku']);
+                    $cantidad = intval($arraySilla[1]);
+                    array_push($arrayTemp, $product->code);
+
                 }else{
-                    $code = Products::getCodeProduct($bill['sku']);
-                    if($code == false){
+                    $product = Products::getProduct($bill['sku']);
+                    if($product == false){
                         array_push($arrayTemp, 'No encontrado');
                     }else{
-                        array_push($arrayTemp, $code);
+                        array_push($arrayTemp, $product->code);
                     }
                    
                 }
-
-                array_push($arrayTemp, $bill['title']);
+                $productName = $product != false ? $product->name : $bill['sku'] ;
+                array_push($arrayTemp, $productName);
             }else{
                 array_push($arrayTemp, "");
                 array_push($arrayTemp, "Factura Agrupada");
@@ -345,13 +352,18 @@ class ReportsController extends Controller
             
             
    
-           
-            array_push($arrayTemp, "901284706");
-            array_push($arrayTemp, $codbodega);
-            $unities = $cantidad > 0 ? $cantidad : $bill['unities'];
-            array_push($arrayTemp, $unities);
+           $unities = $cantidad > 0 ? $cantidad : $bill['unities'];
             $priceUnity = $cantidad > 0 ? (intval($bill['unit_price'])/$cantidad) : $bill['unit_price'];
-            array_push($arrayTemp, $priceUnity);
+            $priceUnit = $this->getUnitValue($priceUnity);
+
+            $total = $this->calulateTotal($priceUnit,$unities);
+            
+            array_push($arrayTemp, "1144105658");
+            array_push($arrayTemp, $codbodega);
+            
+            array_push($arrayTemp, $unities);
+           
+            array_push($arrayTemp, $priceUnit);
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
@@ -361,10 +373,16 @@ class ReportsController extends Controller
             array_push($arrayTemp, "");
             array_push($arrayTemp, "");
             array_push($arrayTemp, "05");
-            array_push($arrayTemp,  $bill['total']);
+            
+            array_push($arrayTemp,  $total);
             $d=strtotime("+30 Days");
             array_push($arrayTemp,date("d/m/Y", $d));
-            array_push($arrayTemp, $bill['code_orden']);
+            if($bill['total'] == 0){
+                array_push($arrayTemp, $bill['code_orden']. " Pertenece a compra anterior");
+            }else {
+                array_push($arrayTemp, $bill['code_orden']);
+            }
+            
 
             array_push($arrayMl, $arrayTemp);
 
@@ -376,8 +394,17 @@ class ReportsController extends Controller
     public function getUnitValue($value)
     {
         $number = intval($value);
-        $result = $number - ($number * 0.19);
+        $result = number_format($number / 1.19,2,'.', '');
         return $result;
+    }
+
+    public function calulateTotal($unit,$cant)
+    {
+        $priceUnity = intval($unit);
+        $quantity = intval($cant);
+
+        $total = number_format(($priceUnity * 1.19) * $quantity,2,'.', '');
+        return $total;
     }
 
     public function idInData($array,$identification)

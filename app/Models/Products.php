@@ -16,7 +16,7 @@ class Products extends Model
 
     
 
-    public static function getCodeProduct($reference)
+    public static function getProduct($reference)
     {
         $name = str_replace(' ', '', $reference);
         $name = str_replace('"', '', $name);
@@ -27,7 +27,7 @@ class Products extends Model
                 if (!is_object($product)) {
                 return false;
                 }
-        return $product->code;
+        return $product;
 
     }
 }
