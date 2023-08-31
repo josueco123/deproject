@@ -16,4 +16,10 @@ class Departments extends Model
                                     ->first();
         return $department->codigo;
     }
+
+    public static function getDepartmentByCityCode($code)
+    {
+        $department = Departments::where('codigo',$code)->first();
+        return $department->codigo;
+    }
 }

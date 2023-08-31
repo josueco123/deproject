@@ -270,8 +270,7 @@ class MercadoLibreController extends Controller
                                     array_push($arrayTemp, '0'.$city->codigo);
                                 }else {
                                     array_push($arrayTemp, strval($city->codigo));
-                                }
-                                
+                                }   
                             }
                             
                         }

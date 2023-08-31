@@ -16,4 +16,19 @@ class Cities extends Model
             ->first();
         return $city;
     }
+
+    public static function getCityByName($name)
+    {
+        $cityName = $name == 'El Dificil' ? 'Ariguani' : $name;
+        
+        if(str_contains($cityName,"(Q)"))
+        $cityName = str_replace(" (Q)", "", $cityName);
+
+        $city = Cities::where('nombre', 'LIKE', '%'.$cityName.'%')
+            ->first();
+            if (!is_object($city)) {
+                return false;
+                }
+        return $city;
+    }
 }
