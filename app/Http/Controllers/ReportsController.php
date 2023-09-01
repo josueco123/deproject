@@ -12,11 +12,14 @@ use App\Imports\MercadoLibreImport;
 use App\Imports\MercadoLibreBillingImport;
 use App\Imports\ElenasThirdImport;
 use App\Imports\ElenasBillingImport;
+use App\Imports\LinioThirdImport;
+use App\Imports\LinioBillingImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Validators\ValidationException;
+use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
 
 class ReportsController extends Controller
 {
@@ -48,27 +51,37 @@ class ReportsController extends Controller
                 case '2':
                     $import = new ElenasThirdImport();
                     break;  
+                case '3':
+                    $import = new LinioThirdImport();
+                    break; 
             }
            
             
-            try{
+           try{
                 Excel::import($import, $file);
                 $data = $import->getArray();
+
+                switch ($selectStore) {
+                    case '1':
+                        $result = $this->filterDataMl($data);
+                        break;
+                    case '2':
+                        $result = $this->filterDataElenas($data);
+                        break; 
+                    case '3':
+                        $result = $this->filterDataLinio($data);
+                        break;  
+                }
+
             } catch(ValidationException $e){
                 return redirect()->back()->withErrors($e->errors())->withInput();
+            } catch (NoTypeDetectedException $e) {
+                return redirect()->back()->with('error', '¡Ocurrió un error! No subas archivos comprimidos, usa solo formatos de excel (.xls, .xlsx, .csv) ');
             } catch (\Exception $e) {
-                return redirect()->back()->with('error', '¡Ocurrió un error durante la importación! Por favor verifica que subiste el archivo de la tienda selecionada ');
+                return redirect()->back()->with('error', '¡Ocurrió un error durante la importación! Por favor verifica que subiste el archivo de la tienda selecionada msg: '. $e->getMessage());
             }
     
-            switch ($selectStore) {
-                case '1':
-                    $result = $this->filterDataMl($data);
-                    break;
-                case '2':
-                    $result = $this->filterDataElenas($data);
-                    break;  
-            }
-            
+           
             return Excel::download(new FileFilterExport($result), "Mercado Libre Terceros".date("Y-m-d H:i:s").'.xlsx');  
         
     }
@@ -91,6 +104,9 @@ class ReportsController extends Controller
                 break;
             case '2':
                 $import = new ElenasBillingImport();
+                break; 
+            case '3':
+                $import = new LinioBillingImport();
                 break;  
         }
         try{
@@ -103,16 +119,20 @@ class ReportsController extends Controller
                     break;
                 case '2':
                     $result = $this->filerDataFactElenas($data);
-                    break;  
+                    break;
+                case '3':
+                    $result = $this->filerDataFactLinio($data);
+                    break;   
+                    
             }
             
         } catch(ValidationException $e){
             return redirect()->back()->withErrors($e->errors())->withInput();
-        } catch (\Exception $e) {
+        } catch (NoTypeDetectedException $e) {
+            return redirect()->back()->with('error', '¡Ocurrió un error! No subas archivos comprimidos, usa solo formatos de excel (.xls, .xlsx, .csv) ');
+        }  catch (\Exception $e) {
             return redirect()->back()->with('error', '¡Ocurrió un error durante la importación! Por favor verifica que subiste el archivo de la tienda selecionada ');
         }
-
-        
 
         return Excel::download(new FileFilterExport($result), "Mercado Libre Facturacion".date("Y-m-d H:i:s").'.xlsx');
     }
@@ -774,6 +794,316 @@ class ReportsController extends Controller
             $d=strtotime("+30 Days");
             array_push($arrayTemp,date("d/m/Y", $d));
             array_push($arrayTemp, $bill['code_orden']);
+
+            array_push($arrayMl, $arrayTemp);
+
+            $arrayTemp = [];
+        }
+        return $arrayMl;
+    }
+
+    private function filterDataLinio($data)
+    {
+        $arrayMl = [];
+        $headers = [
+        "Identificación", 
+        "Dígito de verificación", 
+        "Código Sucursal", 
+        "Tipo identificación", 
+        "Tipo", "Razón social", 
+        "Nombres del tercero", 
+        "Apellidos del tercero", 
+        "Nombre Comercial",
+        "Dirección",
+        "Código país", 
+        "Código departamento/estado", 
+        "Código ciudad",
+        "Indicativo teléfono principal",
+        "Teléfono principal", 
+        "Extensión teléfono principal", 
+        "Tipo de régimen IVA", 
+        "Código Responsabilidad fiscal",
+        "Código Postal", 
+        "Nombres contacto principal",
+        "Apellidos contacto principal",
+        "Indicativo teléfono contacto principal",
+        "Teléfono contacto principal",
+        "Extensión teléfono contacto principal",
+        "Correo electrónico contacto principal",
+        "Identificación del cobrador",
+        "Identificación del vendedor",
+        "Otros",
+        "Clientes",
+        "Proveedor",
+        "Estado",
+        ];
+        array_push($arrayMl, $headers);
+
+        $arrayTemp = [];
+        $arrayEmp = [];
+        $arrayPers = [];
+        foreach ($data as $third){
+
+            if ($third['name'] != " ")
+            {
+                $company = $this->isCompany($third['name']);
+                $ident = $third['identification'] != '' ? $third['identification'] : $third['identification2'];
+                if($company){
+                    if(!$this->idInData($arrayEmp, $ident ))
+                    {
+                        
+                        array_push($arrayTemp, $ident);
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "31");
+                        array_push($arrayTemp, "Empresa");
+                        array_push($arrayTemp, strtoupper($third['name']));
+                        array_push($arrayTemp, "" );
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, $third['address'] );
+                        array_push($arrayTemp, "Co");
+                        $location = explode(",",$third['city']);
+                        $department_id = Departments::getDepartmentCode(trim($location[1]));
+                        if($department_id != false){
+                            array_push($arrayTemp, strval($department_id));
+                            if($department_id == "11"){
+                                array_push($arrayTemp, 11001);
+            
+                            }else {
+                                $city = Cities::getCity(trim($location[0]),$department_id);
+                                if(empty($city)){
+                                    array_push($arrayTemp, $department_id.'001');
+                                }else{
+                                    if($department_id == "05" || $department_id == "08"){
+                                        array_push($arrayTemp, '0'.$city->codigo);
+                                    }else {
+                                        array_push($arrayTemp, strval($city->codigo));
+                                    }
+                                }
+                                
+                            }
+                        }else{
+                            array_push($arrayTemp, $location[1]);
+                            array_push($arrayTemp, $location[0]);
+                        }
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "2 - Responsable de IVA");
+                        array_push($arrayTemp, "R-99-PN");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        $phone = $third['phone'] != '' ? $third['phone'] : $third['phone2'];
+                        array_push($arrayTemp, $phone);
+                        array_push($arrayTemp, "");
+                        $mail = $third['mail'] != '' ? $third['mail'] : 'NOAPLICAFAC@GMAIL.COM';
+                        array_push($arrayTemp, $third['mail']);
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "NO");
+                        array_push($arrayTemp, "Activo");
+
+                        array_push($arrayEmp, $arrayTemp);
+                    }
+                    
+                    $arrayTemp = [];
+    
+                }else{
+
+                    if(!$this->idInData($arrayPers, $ident )){
+
+                        array_push($arrayTemp, $ident );
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "13");
+                        array_push($arrayTemp, "Es persona");
+                        array_push($arrayTemp, "");
+                        $arrayName = $this->separteName($third['name']);
+                        array_push($arrayTemp, strtoupper($arrayName[0]));
+                        array_push($arrayTemp, strtoupper($arrayName[1]));
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp,$third['address'] );
+                        array_push($arrayTemp, "Co");
+                        $location = explode(",",$third['city']);
+                        $department_id = Departments::getDepartmentCode(trim($location[1]));
+                        if($department_id != false){
+                            array_push($arrayTemp, strval($department_id));
+                            if($department_id == "11"){
+                                array_push($arrayTemp, 11001);
+            
+                            }else {
+                                $city = Cities::getCity(trim($location[0]),$department_id);
+                                if(empty($city)){
+                                    array_push($arrayTemp, $department_id.'001');
+                                }else{
+                                    if($department_id == "05" || $department_id == "08"){
+                                        array_push($arrayTemp, '0'.$city->codigo);
+                                    }else {
+                                        array_push($arrayTemp, strval($city->codigo));
+                                    }
+                                }
+                                
+                            }
+                        }else{
+                            array_push($arrayTemp, $location[1]);
+                            array_push($arrayTemp, $location[0]);
+                        }
+                        
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "0 - No responsable de IVA");
+                        array_push($arrayTemp, "R-99-PN");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        $phone = $third['phone'] != '' ? $third['phone'] : $third['phone2'];
+                        array_push($arrayTemp, $phone);
+                        array_push($arrayTemp, "");
+                        $mail = $third['mail'] != '' ? $third['mail'] : 'NOAPLICAFAC@GMAIL.COM';
+                        array_push($arrayTemp, $third['mail']);
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "NO");
+                        array_push($arrayTemp, "Activo");
+
+                        array_push($arrayPers, $arrayTemp);
+                    }
+                    
+                    $arrayTemp = [];
+    
+                }
+            }
+            
+        }
+        $arrayResult = array_merge($arrayMl,$arrayPers,$arrayEmp);
+        return $arrayResult;
+    }
+
+    public function filerDataFactLinio($data)
+    {
+        
+        $arrayMl = [];
+        $headers = [
+        "Tipo de comprobante", 
+        "Consecutivo", 
+        "Identificación tercero",
+        "Sucursal", 
+        "Código centro/subcentro de costos", 
+        "Fecha de elaboración", 
+        "Sigla Moneda",
+        "Tasa de cambio",
+        "Nombre contacto", 
+        "Email Contacto", 
+        "Orden de compra",
+        "Orden de entrega",
+        "Fecha orden de entrega", 
+        "Código producto", 
+        "Descripción producto", 
+        "Identificación vendedor",
+        "Código de Bodega", 
+        "Cantidad producto",
+        "Valor unitario",
+        "Valor Descuento",
+        "Base AIU",
+        "Identificación ingreso para terceros",
+        "Código impuesto cargo",
+        "Código impuesto cargo dos",
+        "Código impuesto retención",
+        "Código ReteICA",
+        "Código ReteIVA",
+        "Código forma de pago",
+        "Valor Forma de Pago",
+        "Fecha Vencimiento",
+        "Observaciones"
+        ];
+        array_push($arrayMl, $headers);
+
+        $arrayTemp = [];
+        foreach ($data as $bill){
+            $cantidad = 0;
+            $product = false;
+
+            $ident = $bill['identification'] != '' ? $bill['identification'] : $bill['identification2'];
+            
+            if(str_contains($bill['sku'],'SILLAEAMES')){
+
+                $product = Products::getProduct('SILLAEAMES');
+                $arraySilla = explode("X",$bill['sku']);
+                $cantidad = intval($arraySilla[1]);
+
+            }elseif(str_contains($bill['sku'],'4005X')){
+                $product = Products::getProduct('SILLA4005ENSAMBLADA');
+                $arraySilla = explode("X",$bill['sku']);
+                $cantidad = intval($arraySilla[1]);
+
+            }else{
+                $product = Products::getProduct($bill['sku']);  
+            }
+
+            
+           $unities = $cantidad > 0 ? $cantidad : 1;
+           $priceUnity = $cantidad > 0 ? (intval($bill['unit_price'])/$cantidad) : $bill['unit_price'];
+           $priceUnit = $this->getUnitValue($priceUnity);
+
+           $total = $this->calulateTotal($priceUnit,$unities);
+
+            $comprobante = $total > 212000 ? 2 : 1;
+            array_push($arrayTemp, $comprobante);
+            array_push($arrayTemp, "");
+
+            array_push($arrayTemp,  $ident);
+            array_push($arrayTemp,"");
+            array_push($arrayTemp,"2-1");
+            array_push($arrayTemp,date("d/m/Y"));
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+
+            if($product == false){
+                array_push($arrayTemp, 'No encontrado');
+                array_push($arrayTemp, $bill['sku']);
+            }else {
+                array_push($arrayTemp, $product->code);
+                array_push($arrayTemp, $product->name);
+            }
+
+            
+            array_push($arrayTemp, "1144105658");
+
+            $codbodega = $bill['type'] == "Dropshipping" ? "03" : "01";
+            array_push($arrayTemp, $codbodega);
+            
+            array_push($arrayTemp, $unities);
+           
+            array_push($arrayTemp, $priceUnit);
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "1");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "05");
+            
+            array_push($arrayTemp,  $total);
+            $d=strtotime("+30 Days");
+            array_push($arrayTemp,date("d/m/Y", $d));
+            array_push($arrayTemp, $bill['code_orden']);
+            array_push($arrayTemp, $bill['status'] . ' - ' . $bill['created']  . ' - ' . $bill['updated']);
 
             array_push($arrayMl, $arrayTemp);
 

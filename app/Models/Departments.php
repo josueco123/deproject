@@ -14,12 +14,18 @@ class Departments extends Model
         $department = Departments::where('nombre', 'LIKE', '%'.$name.'%')
                                     ->orderBy('id', 'desc')
                                     ->first();
+        if (!is_object($department)) {
+                return false;
+                }
         return $department->codigo;
     }
 
     public static function getDepartmentByCityCode($code)
     {
         $department = Departments::where('codigo',$code)->first();
+        if (!is_object($department)) {
+            return false;
+            }
         return $department->codigo;
     }
 }

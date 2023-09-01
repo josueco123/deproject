@@ -14,6 +14,9 @@ class Cities extends Model
         $city = Cities::where('nombre', 'LIKE', '%'.$name.'%')
             ->where('departamento_id', '=', $department_id)
             ->first();
+        if (!is_object($city)) {
+                return false;
+                }
         return $city;
     }
 
