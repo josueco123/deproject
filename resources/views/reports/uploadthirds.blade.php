@@ -36,9 +36,8 @@
                             <option value="1" >Mercado Libre</option>
                             <option value="2">Elenas</option>
                             <option value="3">Linio</option>
-                            <option value="4" disabled>Fallabela</option>
+                            <option value="4" >Fallabela</option>
                             <option value="5" disabled>Exito</option>
-                            <option value="6" disabled>FBL</option>
                             </select>
                         </div>
                         <div class="form-group mt-4">

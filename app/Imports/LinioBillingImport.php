@@ -29,7 +29,7 @@ class LinioBillingImport implements ToArray,WithStartRow, WithCustomCsvSettings
     {
         foreach ($rows as $row) {
             if(isset($row[10])){
-                if($row[51] != 'failed' || $row[51] != 'canceled'){
+                if(!str_contains($row[51],'canceled')){
                     $this->data[] = array(
                         'code_orden' => strval($row[6].' '),
                         'sku' => $row[2], 

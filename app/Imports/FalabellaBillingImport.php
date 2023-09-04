@@ -4,7 +4,7 @@ namespace App\Imports;
 
 use Maatwebsite\Excel\Concerns\{ToArray,WithStartRow,WithCustomCsvSettings};
 
-class FalabellaThirdImport implements ToArray,WithStartRow,WithCustomCsvSettings
+class FalabellaBillingImport implements ToArray,WithStartRow,WithCustomCsvSettings
 {
     private $data;
 
@@ -28,10 +28,18 @@ class FalabellaThirdImport implements ToArray,WithStartRow,WithCustomCsvSettings
     public function array(array $rows)
     {
         foreach ($rows as $row) {
-            if(isset($row[11])){
-                $this->data[] = array('name' => $row[11], 'identification' => $row[12],
-                'address' => $row[13], 'city' => $row[24], 'state' => $row[25],
-                 'phone' => $row[19]);
+            if(isset($row[6])){
+                $this->data[] = array(
+                    'code_orden' => strval($row[0].' '),
+                    'sku' => $row[2], 
+                    'created' => $row[4],
+                    'updated' => $row[5],
+                    'identification' => $row[12],
+                    'quantity' => 1,
+                    'unit_price'=> $row[41],
+                    'type' => $row[49],
+                    'status' => $row[59]);
+            
             }
             
         }

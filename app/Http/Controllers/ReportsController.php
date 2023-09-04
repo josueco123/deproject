@@ -14,6 +14,8 @@ use App\Imports\ElenasThirdImport;
 use App\Imports\ElenasBillingImport;
 use App\Imports\LinioThirdImport;
 use App\Imports\LinioBillingImport;
+use App\Imports\FalabellaThirdImport;
+use App\Imports\FalabellaBillingImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -43,6 +45,7 @@ class ReportsController extends Controller
        
             $file = Storage::putFile('mr_import', $request->file('file_input'));
             $selectStore = $request->input('selectstore');
+            $fileName = "";
 
             switch ($selectStore) {
                 case '1':
@@ -54,6 +57,9 @@ class ReportsController extends Controller
                 case '3':
                     $import = new LinioThirdImport();
                     break; 
+                case '4':
+                    $import = new FalabellaThirdImport();
+                    break; 
             }
            
             
@@ -64,13 +70,20 @@ class ReportsController extends Controller
                 switch ($selectStore) {
                     case '1':
                         $result = $this->filterDataMl($data);
+                        $fileName = "Mercado Libre";
                         break;
                     case '2':
                         $result = $this->filterDataElenas($data);
+                        $fileName = "Elenas";
                         break; 
                     case '3':
                         $result = $this->filterDataLinio($data);
-                        break;  
+                        $fileName = "Linio";
+                        break;
+                    case '4':
+                        $result = $this->filterDataFallabela($data);
+                        $fileName = "Fallabela";
+                        break;   
                 }
 
             } catch(ValidationException $e){
@@ -82,7 +95,7 @@ class ReportsController extends Controller
             }
     
            
-            return Excel::download(new FileFilterExport($result), "Mercado Libre Terceros".date("Y-m-d H:i:s").'.xlsx');  
+            return Excel::download(new FileFilterExport($result), $fileName. " Terceros ".date("Y-m-d H:i:s").'.xlsx');  
         
     }
 
@@ -108,6 +121,9 @@ class ReportsController extends Controller
             case '3':
                 $import = new LinioBillingImport();
                 break;  
+            case '4':
+                $import = new FalabellaBillingImport();
+                break;  
         }
         try{
             Excel::import($import, $file);
@@ -116,13 +132,20 @@ class ReportsController extends Controller
             switch ($selectStore) {
                 case '1':
                     $result = $this->filerDataFact($data,$codbodega);
+                    $fileName = "Mercado Libre";
                     break;
                 case '2':
                     $result = $this->filerDataFactElenas($data);
+                    $fileName = "Elenas";
                     break;
                 case '3':
                     $result = $this->filerDataFactLinio($data);
-                    break;   
+                    $fileName = "Linio";
+                    break;  
+                case '4':
+                    $result = $this->filerDataFactFallabela($data);
+                    $fileName = "Fallabela";
+                    break;  
                     
             }
             
@@ -134,7 +157,7 @@ class ReportsController extends Controller
             return redirect()->back()->with('error', '¡Ocurrió un error durante la importación! Por favor verifica que subiste el archivo de la tienda selecionada ');
         }
 
-        return Excel::download(new FileFilterExport($result), "Mercado Libre Facturacion".date("Y-m-d H:i:s").'.xlsx');
+        return Excel::download(new FileFilterExport($result), $fileName. " Facturacion ".date("Y-m-d H:i:s").'.xlsx');
     }
 
     private function separteName($fullname)
@@ -1084,6 +1107,308 @@ class ReportsController extends Controller
             array_push($arrayTemp, "1144105658");
 
             $codbodega = $bill['type'] == "Dropshipping" ? "03" : "01";
+            array_push($arrayTemp, $codbodega);
+            
+            array_push($arrayTemp, $unities);
+           
+            array_push($arrayTemp, $priceUnit);
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "1");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "05");
+            
+            array_push($arrayTemp,  $total);
+            $d=strtotime("+30 Days");
+            array_push($arrayTemp,date("d/m/Y", $d));
+            array_push($arrayTemp, $bill['code_orden']);
+            array_push($arrayTemp, $bill['status'] . ' - ' . $bill['created']  . ' - ' . $bill['updated']);
+
+            array_push($arrayMl, $arrayTemp);
+
+            $arrayTemp = [];
+        }
+        return $arrayMl;
+    }
+
+    private function filterDataFallabela($data)
+    {
+        $arrayMl = [];
+        $headers = [
+        "Identificación", 
+        "Dígito de verificación", 
+        "Código Sucursal", 
+        "Tipo identificación", 
+        "Tipo", "Razón social", 
+        "Nombres del tercero", 
+        "Apellidos del tercero", 
+        "Nombre Comercial",
+        "Dirección",
+        "Código país", 
+        "Código departamento/estado", 
+        "Código ciudad",
+        "Indicativo teléfono principal",
+        "Teléfono principal", 
+        "Extensión teléfono principal", 
+        "Tipo de régimen IVA", 
+        "Código Responsabilidad fiscal",
+        "Código Postal", 
+        "Nombres contacto principal",
+        "Apellidos contacto principal",
+        "Indicativo teléfono contacto principal",
+        "Teléfono contacto principal",
+        "Extensión teléfono contacto principal",
+        "Correo electrónico contacto principal",
+        "Identificación del cobrador",
+        "Identificación del vendedor",
+        "Otros",
+        "Clientes",
+        "Proveedor",
+        "Estado",
+        ];
+        array_push($arrayMl, $headers);
+
+        $arrayTemp = [];
+        $arrayEmp = [];
+        $arrayPers = [];
+        foreach ($data as $third){
+
+            if ($third['name'] != " ")
+            {
+                $company = $this->isCompany($third['name']);
+              
+                if($company){
+                    if(!$this->idInData($arrayEmp, $third['identification'] ))
+                    {
+                        
+                        array_push($arrayTemp, $third['identification']);
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "31");
+                        array_push($arrayTemp, "Empresa");
+                        array_push($arrayTemp, strtoupper($third['name']));
+                        array_push($arrayTemp, "" );
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, $third['address'] );
+                        array_push($arrayTemp, "Co");
+                        $department_id = Departments::getDepartmentCode($third['state']);
+                        if($department_id != false){
+                            array_push($arrayTemp, strval($department_id));
+                            if($department_id == "11"){
+                                array_push($arrayTemp, 11001);
+            
+                            }else {
+                                $city = Cities::getCity($third['city'],$department_id);
+                                if(empty($city)){
+                                    array_push($arrayTemp, $department_id.'001');
+                                }else{
+                                    if($department_id == "05" || $department_id == "08"){
+                                        array_push($arrayTemp, '0'.$city->codigo);
+                                    }else {
+                                        array_push($arrayTemp, strval($city->codigo));
+                                    }
+                                }
+                                
+                            }
+                        }else{
+                            array_push($arrayTemp, $third['state']);
+                            array_push($arrayTemp, $third['city']);
+                        }
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "2 - Responsable de IVA");
+                        array_push($arrayTemp, "R-99-PN");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        $phone = $third['phone'] != '' ? $third['phone'] : "6023798287";
+                        array_push($arrayTemp, $phone);
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, 'NOAPLICAFAC@GMAIL.COM');
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "NO");
+                        array_push($arrayTemp, "Activo");
+
+                        array_push($arrayEmp, $arrayTemp);
+                    }
+                    
+                    $arrayTemp = [];
+    
+                }else{
+
+                    if(!$this->idInData($arrayPers, $third['identification'] )){
+
+                        array_push($arrayTemp, $third['identification']);
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "13");
+                        array_push($arrayTemp, "Es persona");
+                        array_push($arrayTemp, "");
+                        $arrayName = $this->separteName($third['name']);
+                        array_push($arrayTemp, strtoupper($arrayName[0]));
+                        array_push($arrayTemp, strtoupper($arrayName[1]));
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp,$third['address'] );
+                        array_push($arrayTemp, "Co");
+                        $department_id = Departments::getDepartmentCode($third['state']);
+                        if($department_id != false){
+                            array_push($arrayTemp, strval($department_id));
+                            if($department_id == "11"){
+                                array_push($arrayTemp, 11001);
+            
+                            }else {
+                                $city = Cities::getCity($third['city'],$department_id);
+                                if(empty($city)){
+                                    array_push($arrayTemp, $department_id.'001');
+                                }else{
+                                    if($department_id == "05" || $department_id == "08"){
+                                        array_push($arrayTemp, '0'.$city->codigo);
+                                    }else {
+                                        array_push($arrayTemp, strval($city->codigo));
+                                    }
+                                }
+                                
+                            }
+                        }else{
+                            array_push($arrayTemp, $third['state']);
+                            array_push($arrayTemp, $third['city']);
+                        }
+                        
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "0 - No responsable de IVA");
+                        array_push($arrayTemp, "R-99-PN");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        $phone = $third['phone'] != '' ? $third['phone'] : "6023798287";
+                        array_push($arrayTemp,substr($phone, 2));
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "NOAPLICAFAC@GMAIL.COM");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "NO");
+                        array_push($arrayTemp, "Activo");
+
+                        array_push($arrayPers, $arrayTemp);
+                    }
+                    
+                    $arrayTemp = [];
+                }
+            }
+        }
+        $arrayResult = array_merge($arrayMl,$arrayPers,$arrayEmp);
+        return $arrayResult;
+    }
+
+    public function filerDataFactFallabela($data)
+    {
+        
+        $arrayMl = [];
+        $headers = [
+        "Tipo de comprobante", 
+        "Consecutivo", 
+        "Identificación tercero",
+        "Sucursal", 
+        "Código centro/subcentro de costos", 
+        "Fecha de elaboración", 
+        "Sigla Moneda",
+        "Tasa de cambio",
+        "Nombre contacto", 
+        "Email Contacto", 
+        "Orden de compra",
+        "Orden de entrega",
+        "Fecha orden de entrega", 
+        "Código producto", 
+        "Descripción producto", 
+        "Identificación vendedor",
+        "Código de Bodega", 
+        "Cantidad producto",
+        "Valor unitario",
+        "Valor Descuento",
+        "Base AIU",
+        "Identificación ingreso para terceros",
+        "Código impuesto cargo",
+        "Código impuesto cargo dos",
+        "Código impuesto retención",
+        "Código ReteICA",
+        "Código ReteIVA",
+        "Código forma de pago",
+        "Valor Forma de Pago",
+        "Fecha Vencimiento",
+        "Observaciones"
+        ];
+        array_push($arrayMl, $headers);
+
+        $arrayTemp = [];
+        foreach ($data as $bill){
+            $cantidad = 0;
+            $product = false;
+            
+            if(str_contains($bill['sku'],'SILLAEAMES')){
+
+                $product = Products::getProduct('SILLAEAMES');
+                $arraySilla = explode("X",$bill['sku']);
+                $cantidad = intval($arraySilla[1]);
+
+            }elseif(str_contains($bill['sku'],'4005X')){
+                $product = Products::getProduct('SILLA4005ENSAMBLADA');
+                $arraySilla = explode("X",$bill['sku']);
+                $cantidad = intval($arraySilla[1]);
+
+            }else{
+                $product = Products::getProduct($bill['sku']);  
+            }
+
+            
+           $unities = $cantidad > 0 ? $cantidad : $bill['quantity'];
+           $priceUnity = $cantidad > 0 ? (intval($bill['unit_price'])/$cantidad) : $bill['unit_price'];
+           $priceUnit = $this->getUnitValue($priceUnity);
+
+           $total = $this->calulateTotal($priceUnit,$unities);
+
+            $comprobante = $total > 212000 ? 2 : 1;
+            array_push($arrayTemp, $comprobante);
+            array_push($arrayTemp, "");
+
+            array_push($arrayTemp,  $bill['identification']);
+            array_push($arrayTemp,"");
+            array_push($arrayTemp,"14-1");
+            array_push($arrayTemp,date("d/m/Y"));
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+            array_push($arrayTemp, "");
+
+            if($product == false){
+                array_push($arrayTemp, 'No encontrado');
+                array_push($arrayTemp, $bill['sku']);
+            }else {
+                array_push($arrayTemp, $product->code);
+                array_push($arrayTemp, $product->name);
+            }
+
+            
+            array_push($arrayTemp, "1144105658");
+
+            $codbodega = $bill['type'] == "Dropshipping" ? "01" : "08";
             array_push($arrayTemp, $codbodega);
             
             array_push($arrayTemp, $unities);
