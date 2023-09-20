@@ -99,6 +99,8 @@ class ReportsController extends Controller
                 return redirect()->back()->withErrors($e->errors())->withInput();
             } catch (NoTypeDetectedException $e) {
                 return redirect()->back()->with('error', '¡Ocurrió un error! No subas archivos comprimidos, usa solo formatos de excel (.xls, .xlsx, .csv) ');
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', '¡Ocurrió un error durante la importación! Por favor verifica que subiste el archivo de la tienda selecionada msg: '. $e->getMessage());
             }
     
             return Excel::download(new FileFilterExport($result), $fileName. " Terceros ".date("Y-m-d H:i:s").'.xlsx');  
@@ -166,7 +168,9 @@ class ReportsController extends Controller
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (NoTypeDetectedException $e) {
             return redirect()->back()->with('error', '¡Ocurrió un error! No subas archivos comprimidos, usa solo formatos de excel (.xls, .xlsx, .csv) ');
-        } 
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', '¡Ocurrió un error durante la importación! Por favor verifica que subiste el archivo de la tienda selecionada msg: '. $e->getMessage());
+        }
 
         return Excel::download(new FileFilterExport($result), $fileName. " Facturacion ".date("Y-m-d H:i:s").'.xlsx');
     }
