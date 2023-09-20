@@ -22,8 +22,17 @@ class ExitoBillingImport implements ToArray,WithStartRow
     {
         foreach ($rows as $row) {
             if(isset($row[6])){
-                $this->data[] = array('name' => $row[6], 'identification' => $row[7],
-                'address' => $row[8], 'city' => $row[9], 'phone' => $row[10], 'mail' => $row[11]);
+                $this->data[] = array(
+                    'code_orden' => strval($row[0].' '),
+                    'sku' => $row[14], 
+                    'created' => $row[4],
+                    'updated' => $row[5],
+                    'identification' => $row[8],
+                    'quantity' => $row[18],
+                    'unit_price'=> $row[16],
+                    'type' => $row[23],
+                    'status' => $row[19]);
+            
             }
             
         }

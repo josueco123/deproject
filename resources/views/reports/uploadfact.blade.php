@@ -37,8 +37,7 @@
                             <option value="2">Elenas</option>
                             <option value="3" >Linio</option>
                             <option value="4">Fallabela</option>
-                            <option value="5" disabled>Exito</option>
-                            <option value="6" disabled>FBL</option>
+                            <option value="5">Exito</option>
                             </select>
                         </div>
                         <div class="form-group mb-2">  

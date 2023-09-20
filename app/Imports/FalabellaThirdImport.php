@@ -30,8 +30,8 @@ class FalabellaThirdImport implements ToArray,WithStartRow,WithCustomCsvSettings
         foreach ($rows as $row) {
             if(isset($row[11])){
                 $this->data[] = array('name' => $row[11], 'identification' => $row[12],
-                'address' => $row[13], 'city' => $row[24], 'state' => $row[25],
-                 'phone' => $row[19]);
+                'address' => $row[14], 'city' => $row[24], 'state' => $row[25],
+                 'phone' => $row[32]);
             }
             
         }

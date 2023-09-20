@@ -21,9 +21,9 @@ class ExitoThirdImport implements ToArray,WithStartRow
     public function array(array $rows)
     {
         foreach ($rows as $row) {
-            if(isset($row[6])){
-                $this->data[] = array('name' => $row[6], 'identification' => $row[7],
-                'address' => $row[8], 'city' => $row[9], 'phone' => $row[10], 'mail' => $row[11]);
+            if(isset($row[7])){
+                $this->data[] = array('name' => $row[7], 'identification' => $row[8],
+                'address' => $row[9], 'phone' => $row[10]);
             }
             
         }
