@@ -38,14 +38,14 @@ class ReportsController extends Controller
         return view('reports.uploadfact');
     }
 
-    public function getDataToImportML(Request $request)
+     public function getDataToImportML(Request $request)
     {
         $request->validate([
             'file_input' => 'required',
             'selectstore' => 'required'
           ]);
        
-            $file = Storage::putFile('mr_import', $request->file('file_input'));//
+            $file = Storage::putFile('mr_import', $request->file('file_input'));
             $selectStore = $request->input('selectstore');
             $fileName = "";
 
@@ -87,7 +87,7 @@ class ReportsController extends Controller
                         break;
                     case '4':
                         $result = $this->filterDataFallabela($data);
-                        $fileName = "Fallabela";
+                        $fileName = "Falabella";
                         break;
                     case '5':
                         $result = $this->filterDataExito($data);
@@ -103,6 +103,7 @@ class ReportsController extends Controller
                 return redirect()->back()->with('error', '¡Ocurrió un error durante la importación! Por favor verifica que subiste el archivo de la tienda selecionada msg: '. $e->getMessage());
             }
     
+           
             return Excel::download(new FileFilterExport($result), $fileName. " Terceros ".date("Y-m-d H:i:s").'.xlsx');  
         
     }
@@ -155,7 +156,7 @@ class ReportsController extends Controller
                     break;  
                 case '4':
                     $result = $this->filerDataFactFallabela($data);
-                    $fileName = "Fallabela";
+                    $fileName = "Falabella";
                     break;
                 case '5':
                     $result = $this->filerDataFactExito($data);
@@ -168,8 +169,8 @@ class ReportsController extends Controller
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (NoTypeDetectedException $e) {
             return redirect()->back()->with('error', '¡Ocurrió un error! No subas archivos comprimidos, usa solo formatos de excel (.xls, .xlsx, .csv) ');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', '¡Ocurrió un error durante la importación! Por favor verifica que subiste el archivo de la tienda selecionada msg: '. $e->getMessage());
+        }  catch (\Exception $e) {
+            return redirect()->back()->with('error', '¡Ocurrió un error durante la importación! Por favor verifica que subiste el archivo de la tienda selecionada ');
         }
 
         return Excel::download(new FileFilterExport($result), $fileName. " Facturacion ".date("Y-m-d H:i:s").'.xlsx');
@@ -203,6 +204,7 @@ class ReportsController extends Controller
 
         return $result;
     }
+
 
     public function getUnitValue($value)
     {
@@ -239,7 +241,7 @@ class ReportsController extends Controller
             return $adress;
         }
     }
-
+    
     public function getCityExito($addres)
     {
         $addres = str_replace("|", "",$addres);
@@ -259,9 +261,9 @@ class ReportsController extends Controller
        
         $miArraySinUltimasDos = array_slice($palabras, 0, -4);
         $restul = implode(" ", $miArraySinUltimasDos);
-
-        $restul = strlen($restul) > 50 ? substr($restul, 0, 49) : $restul;
-
+        
+        $restul = strlen($restul) > 50 ? substr($restul, 0, 48) : $restul;
+        
         return $restul;
     }
 
@@ -407,13 +409,13 @@ class ReportsController extends Controller
                             
                         }
                         array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, "6023798287");
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, "0 - No responsable de IVA");
                         array_push($arrayTemp, "R-99-PN");
                         array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, strtoupper($arrayName[0]));
+                        array_push($arrayTemp, $lastName);
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, "6023798287");
                         array_push($arrayTemp, "");
@@ -481,7 +483,7 @@ class ReportsController extends Controller
         $arrayTemp = [];
         foreach ($data as $bill){
             $cantidad = 0;
-
+            
             if(str_contains($bill['sku'],'SILLAEAMES')){
                     $arraySilla = explode("X",$bill['sku']);
                     $cantidad = intval($arraySilla[1]);
@@ -490,7 +492,7 @@ class ReportsController extends Controller
                     $cantidad = intval($arraySilla[1]);
             }
             
-            $unities = $cantidad > 0 ? $cantidad : $bill['unities'];
+            $unities = $cantidad > 0 ? ($cantidad * $bill['unities']): $bill['unities'];
             $priceUnity = $cantidad > 0 ? (intval($bill['unit_price'])/$cantidad) : $bill['unit_price'];
             $priceUnit = $this->getUnitValue($priceUnity);
 
@@ -541,12 +543,7 @@ class ReportsController extends Controller
             
             
    
-           $unities = $cantidad > 0 ? $cantidad : $bill['unities'];
-            $priceUnity = $cantidad > 0 ? (intval($bill['unit_price'])/$cantidad) : $bill['unit_price'];
-            $priceUnit = $this->getUnitValue($priceUnity);
-
-            $total = $this->calulateTotal($priceUnit,$unities);
-            
+           
             array_push($arrayTemp, "1144105658");
             array_push($arrayTemp, $codbodega);
             
@@ -700,7 +697,8 @@ class ReportsController extends Controller
                         array_push($arrayTemp, "");
                         $arrayName = $this->separteName($name);
                         array_push($arrayTemp, strtoupper($arrayName[0]));
-                        array_push($arrayTemp, strtoupper($arrayName[1]));
+                        $lastName = isset($arrayName[1]) ?strtoupper($arrayName[1]) : '';
+                        array_push($arrayTemp, strtoupper($lastName));
                         array_push($arrayTemp, "");
                         $adress = $this->setAdress($third['address']);
                         array_push($arrayTemp, $adress);
@@ -720,13 +718,13 @@ class ReportsController extends Controller
                         }
                         
                         array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, $third['phone']);
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, "0 - No responsable de IVA");
                         array_push($arrayTemp, "R-99-PN");
                         array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, strtoupper($arrayName[0]));
+                        array_push($arrayTemp, $lastName);
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, $third['phone']);
                         array_push($arrayTemp, "");
@@ -743,7 +741,9 @@ class ReportsController extends Controller
                     
                     $arrayTemp = [];
     
-                }  
+                }
+            
+            
         }
         $arrayResult = array_merge($arrayMl,$arrayPers,$arrayEmp);
         return $arrayResult;
@@ -799,7 +799,7 @@ class ReportsController extends Controller
                 $arraySilla = explode("X",$bill['sku']);
                 $cantidad = intval($arraySilla[1]);
 
-            }elseif(str_contains($bill['sku'],'4005X')){
+            }elseif(str_contains($bill['sku'],'SILLAS 4005 X')){
                 $product = Products::getProduct('SILLA4005ENSAMBLADA');
                 $arraySilla = explode("X",$bill['sku']);
                 $cantidad = intval($arraySilla[1]);
@@ -809,7 +809,7 @@ class ReportsController extends Controller
             }
 
             
-           $unities = $cantidad > 0 ? $cantidad : $bill['quantity'];
+           $unities = $cantidad > 0 ?($cantidad * $bill['unities']) : $bill['quantity'];
            $priceUnity = $cantidad > 0 ? (intval($bill['unit_price'])/$cantidad) : $bill['unit_price'];
            $priceUnit = $this->getUnitValue($priceUnity);
 
@@ -960,8 +960,9 @@ class ReportsController extends Controller
                             array_push($arrayTemp, $location[1]);
                             array_push($arrayTemp, $location[0]);
                         }
+                        $phone = $third['phone'] != '' ? $third['phone'] : $third['phone2'];
                         array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, $phone);
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, "2 - Responsable de IVA");
                         array_push($arrayTemp, "R-99-PN");
@@ -969,7 +970,7 @@ class ReportsController extends Controller
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, "");
-                        $phone = $third['phone'] != '' ? $third['phone'] : $third['phone2'];
+                        
                         array_push($arrayTemp, $phone);
                         array_push($arrayTemp, "");
                         $mail = $third['mail'] != '' ? $third['mail'] : 'NOAPLICAFAC@GMAIL.COM';
@@ -998,7 +999,8 @@ class ReportsController extends Controller
                         array_push($arrayTemp, "");
                         $arrayName = $this->separteName($third['name']);
                         array_push($arrayTemp, strtoupper($arrayName[0]));
-                        array_push($arrayTemp, strtoupper($arrayName[1]));
+                        $lastName = isset($arrayName[1]) ?strtoupper($arrayName[1]) : '';
+                        array_push($arrayTemp, strtoupper($lastName));
                         array_push($arrayTemp, "");
                         array_push($arrayTemp,$third['address'] );
                         array_push($arrayTemp, "Co");
@@ -1026,17 +1028,17 @@ class ReportsController extends Controller
                             array_push($arrayTemp, $location[1]);
                             array_push($arrayTemp, $location[0]);
                         }
-                        
+                         $phone = $third['phone'] != '' ? $third['phone'] : $third['phone2'];
                         array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, $phone);
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, "0 - No responsable de IVA");
                         array_push($arrayTemp, "R-99-PN");
                         array_push($arrayTemp, "");
+                        array_push($arrayTemp, strtoupper($arrayName[0]));
+                        array_push($arrayTemp, $lastName);
                         array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
-                        $phone = $third['phone'] != '' ? $third['phone'] : $third['phone2'];
+                       
                         array_push($arrayTemp, $phone);
                         array_push($arrayTemp, "");
                         $mail = $third['mail'] != '' ? $third['mail'] : 'NOAPLICAFAC@GMAIL.COM';
@@ -1156,7 +1158,7 @@ class ReportsController extends Controller
             
             array_push($arrayTemp, "1144105658");
 
-            $codbodega = $bill['type'] == "Dropshipping" ? "03" : "01";
+            $codbodega = $bill['type'] == "Dropshipping" ? "01" : "03";
             array_push($arrayTemp, $codbodega);
             
             array_push($arrayTemp, $unities);
@@ -1184,7 +1186,7 @@ class ReportsController extends Controller
         }
         return $arrayMl;
     }
-
+    
     private function filterDataFallabela($data)
     {
         $arrayMl = [];
@@ -1306,7 +1308,8 @@ class ReportsController extends Controller
                         array_push($arrayTemp, "");
                         $arrayName = $this->separteName($third['name']);
                         array_push($arrayTemp, strtoupper($arrayName[0]));
-                        array_push($arrayTemp, strtoupper($arrayName[1]));
+                        $lastName = isset($arrayName[1]) ?strtoupper($arrayName[1]) : '';
+                        array_push($arrayTemp, strtoupper($lastName));
                         array_push($arrayTemp, "");
                         array_push($arrayTemp,$third['address'] );
                         array_push($arrayTemp, "Co");
@@ -1333,17 +1336,17 @@ class ReportsController extends Controller
                             array_push($arrayTemp, $third['state']);
                             array_push($arrayTemp, $third['city']);
                         }
-                        
+                        $phone = $third['phone'] != '' ? $third['phone'] : "6023798287";
                         array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
+                        array_push($arrayTemp, $phone);
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, "0 - No responsable de IVA");
                         array_push($arrayTemp, "R-99-PN");
                         array_push($arrayTemp, "");
+                        array_push($arrayTemp, $arrayName[0]);
+                        array_push($arrayTemp, $lastName);
                         array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
-                        $phone = $third['phone'] != '' ? $third['phone'] : "6023798287";
+                        
                         array_push($arrayTemp,substr($phone, 2));
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, "NOAPLICAFAC@GMAIL.COM");
@@ -1425,7 +1428,7 @@ class ReportsController extends Controller
             }
 
             
-           $unities = $cantidad > 0 ? $cantidad : $bill['quantity'];
+           $unities = $cantidad > 0 ? ($cantidad * $bill['quantity']): $bill['quantity'];
            $priceUnity = $cantidad > 0 ? (intval($bill['unit_price'])/$cantidad) : $bill['unit_price'];
            $priceUnit = $this->getUnitValue($priceUnity);
 
@@ -1486,8 +1489,8 @@ class ReportsController extends Controller
         }
         return $arrayMl;
     }
-
-    private function filterDataExito($data)
+    
+     private function filterDataExito($data)
     {
         $arrayMl = [];
         $headers = [
@@ -1610,7 +1613,8 @@ class ReportsController extends Controller
                         array_push($arrayTemp, "");
                         $arrayName = $this->separteName($third['name']);
                         array_push($arrayTemp, strtoupper($arrayName[0]));
-                        array_push($arrayTemp, strtoupper($arrayName[1]));
+                       $lastName = isset($arrayName[1]) ?strtoupper($arrayName[1]) : '';
+                        array_push($arrayTemp, strtoupper($lastName));
                         array_push($arrayTemp, "");
                         $addres = $this->setAddresExito($third['address']);
                         array_push($arrayTemp, $addres);
@@ -1639,17 +1643,17 @@ class ReportsController extends Controller
                             array_push($arrayTemp, $city[1]);
                             array_push($arrayTemp, $city[2]);
                         }
-                        
+                        $phone = str_contains($third['phone'],"+")  ? substr($third['phone'], 3) : $third['phone'];
                         array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
+                        array_push($arrayTemp,  $phone);
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, "0 - No responsable de IVA");
                         array_push($arrayTemp, "R-99-PN");
                         array_push($arrayTemp, "");
+                        array_push($arrayTemp,  strtoupper($arrayName[0]));
+                        array_push($arrayTemp, $lastName);
                         array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
-                        array_push($arrayTemp, "");
-                        $phone = str_contains($third['phone'],"+")  ? substr($third['phone'], 3) : $third['phone'];
+                        
                         array_push($arrayTemp,$phone);
                         array_push($arrayTemp, "");
                         array_push($arrayTemp, "NOAPLICAFAC@GMAIL.COM");
@@ -1731,7 +1735,7 @@ class ReportsController extends Controller
             }
 
             
-           $unities = $cantidad > 0 ? $cantidad : $bill['quantity'];
+           $unities = $cantidad > 0 ? ($cantidad * $bill['quantity']) : $bill['quantity'];
            $priceUnity = $cantidad > 0 ? (intval($bill['unit_price'])/$cantidad) : $bill['unit_price'];
            $priceUnit = $this->getUnitValue($priceUnity);
 

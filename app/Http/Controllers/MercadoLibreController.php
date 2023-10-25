@@ -65,8 +65,7 @@ class MercadoLibreController extends Controller
         }else {
             return redirect('mercadolibreapi')->with('status', $response->json()['message']);
         }
-        
-       
+         
     }
 
     public function getSelectMethod(Request $request){
